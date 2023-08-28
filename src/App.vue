@@ -7,8 +7,11 @@ import Basemap from '@arcgis/core/Basemap';
 import { HK80 } from '@/constants/gisConstants';
 import { basemapLayers, basicLayers } from '@/constants/layerConstants';
 import { makeLayer } from '@/utils/configLayers';
+import sampleStyle from '@/assets/sampleStyle.json';
 
-import LayerTree from '@/components/LayerTree.vue';
+import { ColorTree, LayerTree } from '@/components';
+
+provide('mapStyle', [sampleStyle]);
 
 let layers = reactive({
   basemap: [],
@@ -33,7 +36,6 @@ const mapView = new MapView({
   },
   zoom: 13,
   spatialReference: HK80,
-  // ui: { components: [] }
 });
 provide('mapView', mapView);
 
@@ -44,7 +46,8 @@ onMounted(() => {
 
 <template lang="pug">
 #map-wrapper
-  layer-tree(:layerView="mapView.basemapView.baseLayerViews")
+  color-tree
+  //- layer-tree(:layerView="mapView.basemapView.baseLayerViews")
   #map-container
 </template>
 
