@@ -4,11 +4,18 @@ v-card#color-tree
     v-expansion-panel(
       v-for="color in colorLibrary" 
       :key="`color-${color.id}`")
-      v-expansion-panel-title {{ color.color }}
-        v-menu(:close-on-content-click="false")
-          template(v-slot:activator="{ props }")
-            v-btn(:color="color.color" density="compact" v-bind="props")
-          v-color-picker(v-model="color.color" mode="hex" @update:modelValue="(evt) => loadStyleDeb(evt, color)")
+      v-expansion-panel-title
+        .d-inline-flex.justify-space-between.w-75
+          .pane
+            v-btn(:color="color.original" density="compact" v-bind="props")
+            .text-overline {{ color.original }}
+          .pane
+            v-menu(:close-on-content-click="false")
+              template(v-slot:activator="{ props }")
+                v-btn(:color="color.color" density="compact" v-bind="props" style="text-align: end")
+              v-color-picker(v-model="color.color" mode="hex" @update:modelValue="(evt) => loadStyleDeb(evt, color)")
+            .text-overline {{ color.color }}
+
       v-expansion-panel-text
         v-list(lines="one")
           v-list-item(
@@ -34,8 +41,9 @@ export default {
         styleLibrary.layers.forEach((layer) => {
           if (layer.paint && 'fill-color' in layer.paint) {
             const targetColor = layer.paint['fill-color'];
+            const isColorExisted = this.colorLibrary.find((color) => color.color === targetColor);
 
-            if (!this.colorLibrary.includes((color) => color.color === targetColor)) {
+            if (!isColorExisted) {
               this.colorLibrary.push({
                 id: _.uniqueId(),
                 original: targetColor,
@@ -48,16 +56,19 @@ export default {
             colorRecord.layers.push(layer);
           }
         })
-      })
+      });
     },
-    loadStyleDeb: _.debounce(function(evt, original) {
-      console.log(evt, original);
-      this.loadStyle(evt, original);
+    loadStyleDeb: _.debounce(function(evt, colorGroup) {
+      this.loadStyle(evt, colorGroup);
     }, 1000),
-    loadStyle(evt, original) {
+    loadStyle(evt, colorGroup) {
       this.mapStyle.forEach((styleLib) => {
         styleLib.layers.forEach((layer) => {
-          if ('fill-color' in layer.paint && layer.paint['fill-color'] === original.original) {
+          const targetLayer = colorGroup.layers.find((colorGroupLayer) => colorGroupLayer.id === layer.id);
+          
+          if (!targetLayer) return;
+
+          if ('fill-color' in targetLayer.paint) {
             layer.paint['fill-color'] = evt;
           }
         })
@@ -68,8 +79,6 @@ export default {
           if (layer.layer) layer.layer.loadStyle(lib);
         });
       });
-
-      this.setColorLibrary();
     },
   },
 }
